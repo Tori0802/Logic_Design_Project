@@ -1,0 +1,24 @@
+18:33:29 **** Incremental Build of configuration Debug for project LDP ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/fsm_clock.c" -mcpu=cortex-m3 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/fsm_clock.d" -MT"Core/Src/fsm_clock.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/fsm_clock.o"
+arm-none-eabi-gcc -o "LDP.elf" @"objects.list"   -mcpu=cortex-m3 -T"D:\Workspace\Lab MCU\Logic Design Project\STM32\LDP\STM32F103RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LDP.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: LDP.elf
+ 
+arm-none-eabi-size   LDP.elf 
+arm-none-eabi-objdump -h -S  LDP.elf  > "LDP.list"
+arm-none-eabi-objcopy  -O binary  LDP.elf  "LDP.bin"
+   text	   data	    bss	    dec	    hex	filename
+  22716	    236	   2004	  24956	   617c	LDP.elf
+Finished building: default.size.stdout
+ 
+Finished building: LDP.bin
+ 
+Finished building: LDP.list
+ 
+18:33:39 **** Incremental Build of configuration Debug for project LDP ****
+make -j4 all 
+arm-none-eabi-size   LDP.elf 
+   text	   data	    bss	    dec	    hex	filename
+  22716	    236	   2004	  24956	   617c	LDP.elf
+Finished building: default.size.stdout
+ 

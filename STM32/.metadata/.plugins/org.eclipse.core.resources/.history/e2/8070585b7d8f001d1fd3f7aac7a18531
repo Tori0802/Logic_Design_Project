@@ -1,0 +1,70 @@
+/*
+ * global.c
+ *
+ *  Created on: Sep 30, 2022
+ *      Author: Admin
+ */
+
+
+#include "global.h"
+
+/*---------------Function init time -------------------------------------------------------*/
+void time_init(TIME_STRUCT time) {
+	time.sec = 0;
+	time.min = 0;
+	time.hour = 0;
+}
+void time_update(TIME_STRUCT time) {
+	time.sec++;
+	if (time.sec >= 60) {
+		time.sec = 0;
+		time.min++;
+		if (time.min >= 60) {
+			time.min = 0;
+			time.hour++;
+			if (time.hour >= 24) time.hour = 0;
+		}
+	}
+}
+
+/*--------------- Init variables ----------------------------------------------------------*/
+// LCD 1602
+Lcd_HandleTypeDef lcd;
+
+// FSM Clock
+TIME_STRUCT real_time;		// Mode 1
+time_init(real_time);
+TIME_STRUCT sport_time;		// Mode 2 - counter
+TIME_STRUCT mem1_time;		// Mode 2 - memcall1
+TIME_STRUCT mem2_time;		// Mode 2 - memcall2
+TIME_STRUCT mem3_time;		// Mode 2 - memcall3
+TIME_STRUCT alarm_time;		// Mode 3 - alarm
+int alarm_flag = 0;			// Flag alarm-clock
+
+// Variables status
+int status = INIT;
+int m1_status = INIT;
+int m2_status = COUNT_PER;
+int m3_status = ALARM_CLOCK;
+int m2_run = 0;
+
+int real_hour = 0;
+int real_min = 0;
+int real_sec = 0;
+
+int sport_hour = 0;
+int sport_min = 0;
+int sport_sec = 0;
+int mem1_hour = 0;
+int mem1_min = 0;
+int mem1_sec = 0;
+int mem2_hour = 0;
+int mem2_min = 0;
+int mem2_sec = 0;
+int mem3_hour = 0;
+int mem3_min = 0;
+int mem3_sec = 0;
+
+int alarm_hour = 0;
+int alarm_min = 0;
+int alarm_sec = 0;

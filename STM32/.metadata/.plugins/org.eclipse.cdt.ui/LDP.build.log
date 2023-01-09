@@ -1,0 +1,10 @@
+18:33:39 **** Incremental Build of configuration Debug for project LDP ****
+make -j4 all 
+arm-none-eabi-size   LDP.elf 
+   text	   data	    bss	    dec	    hex	filename
+  22716	    236	   2004	  24956	   617c	LDP.elf
+Finished building: default.size.stdout
+ 
+
+18:33:39 Build Finished. 0 errors, 0 warnings. (took 684ms)
+

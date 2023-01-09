@@ -1,0 +1,94 @@
+/*
+ * global.h
+ *
+ *  Created on: Sep 30, 2022
+ *      Author: Admin
+ */
+
+#ifndef INC_GLOBAL_H_
+#define INC_GLOBAL_H_
+
+#include "main.h"
+#include "ds1307.h"
+#include "lcd1602.h"
+
+/*---------------Define Mode----------------------------------------------------------*/
+// Mode INIT
+#define INIT				0
+
+// Mode 1: REAL-TIME CLOCK
+#define MODE1				1
+
+// Mode 2: SPORT CLOCK
+#define MODE2				2
+#define COUNT_PER			21
+#define COUNT_CHANGE		22
+#define MEM1				23
+#define MEM2				24
+#define	MEM3				25
+
+// Mode 3: ALARM CLOCK
+#define MODE3				3
+#define ALARM_CLOCK			31
+#define SET_ALARM_HOUR		32
+#define SET_ALARM_MINUTE	33
+#define SET_ALARM_SECOND	34
+
+
+/*---------------Define struct time and function init --------------------------------*/
+// Struct time
+typedef struct {
+	int	sec;
+	int min;
+	int hour;
+}TIME_STRUCT;
+
+
+void time_update(TIME_STRUCT time);
+
+/*---------------Variables------------------------------------------------------------*/
+// LCD 1602
+extern Lcd_HandleTypeDef lcd;
+
+// FSM Clock
+extern TIME_STRUCT real_time;		// Mode 1
+extern TIME_STRUCT sport_time;		// Mode 2 - counter
+extern TIME_STRUCT mem1_time;		// Mode 2 - memcall1
+extern TIME_STRUCT mem2_time;		// Mode 2 - memcall2
+extern TIME_STRUCT mem3_time;		// Mode 2 - memcall3
+extern TIME_STRUCT alarm_time;		// Mode 3 - alarm
+extern int alarm_flag;				// Flag alarm-clock
+
+// Variables status
+extern int status;
+extern int m1_status;
+extern int m2_status;
+extern int m3_status;
+extern int m2_run;
+
+// Real-time clock to compare with alarm-clock
+extern int real_hour;
+extern int real_min;
+extern int real_sec;
+
+// Sport-clock and 3 values memcall
+extern int sport_hour;
+extern int sport_min;
+extern int sport_sec;
+extern int mem1_hour;
+extern int mem1_min;
+extern int mem1_sec;
+extern int mem2_hour;
+extern int mem2_min;
+extern int mem2_sec;
+extern int mem3_hour;
+extern int mem3_min;
+extern int mem3_sec;
+
+// Alarm-
+extern int alarm_hour;
+extern int alarm_min;
+extern int alarm_sec;
+extern int alarm_flag;
+
+#endif /* INC_GLOBAL_H_ */

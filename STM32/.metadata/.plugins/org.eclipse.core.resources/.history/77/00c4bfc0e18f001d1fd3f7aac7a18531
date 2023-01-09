@@ -1,0 +1,38 @@
+/*
+ * button.h
+ *
+ *  Created on: Oct 7, 2022
+ *      Author: dell
+ */
+
+#ifndef INC_BUTTON_H_
+#define INC_BUTTON_H_
+
+#include "main.h"
+#include "software_timer.h"
+
+/*--------------- Defines ---------------------------------------*/
+#define NORMAL_STATE SET
+#define PRESSED_STATE RESET
+
+#define NUM_OF_BUTTONS 6			// Number of Buttons to use
+/* We have 6 buttons:
+	Button 1 (index = 0): MODE
+	Button 2 (index = 1): START / UP
+	Button 3 (index = 2): STOP / DOWN
+	Button 4 (index = 3): SAVE / SET
+	Button 5 (index = 4): CLEAR
+	Button 6 (index = 5): MEMCALL
+*/
+
+/*--------------- Variables ---------------------------------------*/
+int longkeyPress;					// Set time for longkeyPress
+int change_statelongkey;			// Set time for the next state transitions if longkeyPress still happening
+
+/*--------------- Public functions ---------------------------------------*/
+int isButtonPressed(int index);
+
+/*--------------- Function in time interrupt -----------------------------*/
+void getKeyInput();
+
+#endif /* INC_BUTTON_H_ */

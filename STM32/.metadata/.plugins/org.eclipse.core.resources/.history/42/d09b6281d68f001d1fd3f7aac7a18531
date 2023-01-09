@@ -1,0 +1,387 @@
+/*
+ * mode2.c
+ *
+ *  Created on: Nov 1, 2022
+ *      Author: dell
+ */
+
+#include "fsm_clock.h"
+
+TIM_HandleTypeDef htim3;
+
+/*--------------- Functions display --------------------------*/
+void clear_display() {
+	Lcd_cursor(&lcd, 0, 0);
+	Lcd_string(&lcd, "                ");
+	Lcd_cursor(&lcd, 1, 0);
+	Lcd_string(&lcd, "                ");
+}
+
+void display_fsm_time(char* cmd, TIME_STRUCT time) {
+	Lcd_cursor(&lcd, 0, 3);
+	Lcd_string(&lcd, cmd);
+	Lcd_cursor(&lcd, 1, 3);
+	char count_time[10];
+	sprintf((char*)count_time,"%02d:%02d:%02d", time.hour, time.min, time.sec);
+	Lcd_string(&lcd, count_time);
+}
+
+
+
+/*--------------- Functions fsm --------------------------*/
+// Init variables fsm
+void fsm_init() {
+	sport_time = time_init(sport_time);		// Mode 2 - counter
+	mem1_time = time_init(mem1_time);		// Mode 2 - memcall1
+	mem2_time = time_init(mem2_time);		// Mode 2 - memcall2
+	mem3_time = time_init(mem3_time);		// Mode 2 - memcall3
+	alarm_time = time_init(alarm_time);		// Mode 3 - alarm
+}
+
+// FSM Clock
+void fsm_clock() {
+	//---Tasks that are run throughout---
+	// Counter sport-clock (if running)
+	if (m2_run == 1) {
+		if (timer_flag[1] == 1) {
+			setTimer(1, 1000);
+			sport_time = time_update(sport_time);
+		}
+	}
+	// Update real-time
+	if (timer_flag[0] == 1) {
+		setTimer(0, 1000);
+		get_time();
+		// Alarm time
+		if (alarm_flag == 1) {
+			if (rTime.Hours == alarm_time.hour &&
+				rTime.Minutes == alarm_time.min &&
+				rTime.Seconds == alarm_time.sec) {
+				alarm_flag = 2;
+				setTimer(2, 30000);
+				setTimer(3, 1000);
+				__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 60);
+			}
+		}
+	}
+
+	// Buzzer alarm time (if buzzer running)
+	if (timer_flag[3] == 1) {
+		setTimer(4, 1000);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0);
+		clearTimer(3);
+	}
+	if (timer_flag[4] == 1) {
+		setTimer(3, 1000);
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 60);
+		clearTimer(4);
+	}
+	// CLEAR buzzer
+	if (isButtonPressed(4) == 1 || timer_flag[2] == 1) {
+		__HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0);
+		clearTimer(3);
+		clearTimer(4);
+		alarm_flag = 1;
+	}
+
+	switch(status){
+	case INIT:
+		status = MODE1;
+		break;
+// MODE 1: REAL CLOCK
+	case MODE1:
+		display_time();
+		// MODE
+		if (isButtonPressed(0) == 1) {
+			status = MODE2;
+			clear_display();
+			if (m2_run == 1) m2_status = COUNT_CHANGE;
+			else m2_status = COUNT_PER;
+		}
+		// Don't use another buttons
+		if (isButtonPressed(1) == 1 || isButtonPressed(2) == 1 ||
+			isButtonPressed(3) == 1 || isButtonPressed(4) == 1 || isButtonPressed(5) == 1) {}
+		break;
+// MODE 2: REAL CLOCK
+	case MODE2:
+		fsm_sport_clock();
+		// MODE
+		if (isButtonPressed(0) == 1) {
+			status = MODE3;
+			clear_display();
+		}
+		break;
+// MODE 3: REAL CLOCK
+	case MODE3:
+		fsm_alarm_clock();
+		// MODE
+		if (isButtonPressed(0) == 1) {
+			status = MODE1;
+			clear_display();
+		}
+		// MEMCALL (don't use)
+		if (isButtonPressed(5) == 1) {}
+		break;
+	default:
+		break;
+	}
+}
+/*--------------------------------------------------------------------------------------------------------------------------------------*/
+
+int index_m = 1;
+/*--------------------------------------------------------------------------------------------------------------------------------------*/
+// MODE 2: SPORT CLOCK
+void fsm_sport_clock(){
+	switch(m2_status){
+	case COUNT_PER:
+		display_fsm_time("SPORT MODE", sport_time);
+		// START
+		if (isButtonPressed(1) == 1) {
+			m2_status = COUNT_CHANGE;
+			clear_display();
+			m2_run = 1;
+			setTimer(1, 1000);
+		}
+		// SAVE
+		if (isButtonPressed(3) == 1) {
+			switch(index_m){
+				case 1:
+					mem1_time = sport_time;
+					index_m = 2;
+					break;
+				case 2:
+					mem2_time = sport_time;
+					index_m = 3;
+					break;
+				case 3:
+					mem3_time = sport_time;
+					index_m = 1;
+					break;
+				default:
+					break;
+			}
+			sport_time = time_init(sport_time);
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			sport_time = time_init(sport_time);
+			clearTimer(1);
+		}
+		// MEMCALL
+		if (isButtonPressed(5) == 1) {
+			clear_display();
+			m2_status = MEM1;
+		}
+		// STOP (don't use)
+		if (isButtonPressed(2) == 1) {}
+		break;
+
+	case COUNT_CHANGE:
+		// Counter sport clock
+		display_fsm_time("RUNNING", sport_time);
+		if (timer_flag[1] == 1) {
+			setTimer(1, 1000);
+			sport_time = time_update(sport_time);
+		}
+		// STOP
+		if (isButtonPressed(2) == 1) {
+			m2_status = COUNT_PER;
+			clear_display();
+			m2_run = 0;
+			clearTimer(1);
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			sport_time = time_init(sport_time);
+			m2_status = COUNT_PER;
+			clear_display();
+			m2_run = 0;
+			clearTimer(1);
+		}
+		// MEMCALL
+		if (isButtonPressed(5) == 1) {
+			clear_display();
+			m2_status = MEM1;
+		}
+		// START and SAVE (don't use)
+		if (isButtonPressed(1) == 1 || isButtonPressed(3) == 1) {}
+		break;
+
+	case MEM1:
+		// Display Memcall1 clock
+		display_fsm_time("MEMCALL 1", sport_time);
+		// START
+		if (isButtonPressed(1) == 1) {
+			m2_run = 1;
+			setTimer(1, 1000);
+		}
+		// STOP
+		if (isButtonPressed(2) == 1) {
+			m2_run = 0;
+			clearTimer(1);
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			mem1_time = time_init(mem1_time);
+		}
+		// MEMCALL
+		if (isButtonPressed(5) == 1) {
+			m2_status = MEM2;
+			clear_display();
+		}
+		// SAVE (don't use)
+		if (isButtonPressed(3) == 1) {}
+		break;
+
+	case MEM2:
+		// Display Memcall2 clock
+		display_fsm_time("MEMCALL 2", sport_time);
+		// START
+		if (isButtonPressed(1) == 1) {
+			m2_run = 1;
+			setTimer(1, 1000);
+		}
+		// STOP
+		if (isButtonPressed(2) == 1) {
+			m2_run = 0;
+			clearTimer(1);
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			mem2_time = time_init(mem2_time);
+		}
+		// MEMCALL
+		if (isButtonPressed(5) == 1) {
+			m2_status = MEM3;
+			clear_display();
+		}
+		// SAVE (don't use)
+		if (isButtonPressed(3) == 1) {}
+		break;
+
+	case MEM3:
+		// Display Memcall3 clock
+		display_fsm_time("MEMCALL 3", sport_time);
+		// START
+		if (isButtonPressed(1) == 1) {
+			m2_run = 1;
+			setTimer(1, 1000);
+		}
+		// STOP
+		if (isButtonPressed(2) == 1) {
+			m2_run = 0;
+			clearTimer(1);
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			mem_3 = time_init(mem3_time);
+		}
+		// MEMCALL
+		if (isButtonPressed(5) == 1) {
+			if (m2_run == 1) m2_status = COUNT_CHANGE;
+			else m2_status = COUNT_PER;
+			clear_display();
+		}
+		// SAVE (don't use)
+		if (isButtonPressed(3) == 1) {}
+		break;
+
+	default:
+		break;
+	}
+}
+/*--------------------------------------------------------------------------------------------------------------------------------------*/
+
+
+
+/*--------------------------------------------------------------------------------------------------------------------------------------*/
+// MODE 3: SPORT CLOCK
+
+void fsm_alarm_clock(){
+	switch(m3_status){
+	case ALARM_CLOCK:
+		// Display alarm clock
+		// SET
+		if (isButtonPressed(3) == 1) {
+			m3_status = SET_ALARM_HOUR;
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			alarm_flag = 0;
+		}
+		// START and STOP (don't use)
+		if (isButtonPressed(1) == 1 || isButtonPressed(2) == 1) {}
+		break;
+
+	case SET_ALARM_HOUR:
+		// Display alarm clock
+		// UP
+		if (isButtonPressed(1) == 1) {
+			alarm_time.hour++;
+			if (alarm_time.hour >= 24) alarm_time.hour = 0;
+		}
+		// DOWN
+		if (isButtonPressed(2) == 1) {
+			alarm_time.hour--;
+			if (alarm_time.hour < 0) alarm_time.hour = 23;
+		}
+		// SET
+		if (isButtonPressed(3) == 1) {
+			m3_status = SET_ALARM_MINUTE;
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			alarm_time.hour = 0;
+		}
+		break;
+
+
+	case SET_ALARM_MINUTE:
+		// Display alarm clock
+		// UP
+		if (isButtonPressed(1) == 1) {
+			alarm_time.min++;
+			if (alarm_time.min >= 60) alarm_time.min = 0;
+		}
+		// DOWN
+		if (isButtonPressed(2) == 1) {
+			alarm_time.min--;
+			if (alarm_time.min < 0) alarm_time.min = 59;
+		}
+		// SET
+		if (isButtonPressed(3) == 1) {
+			m3_status = SET_ALARM_SECOND;
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			alarm_time.min = 0;
+		}
+		break;
+
+	case SET_ALARM_SECOND:
+		// Display alarm clock
+		// UP
+		if (isButtonPressed(1) == 1) {
+			alarm_time.sec++;
+			if (alarm_time.sec >= 60) alarm_time.sec = 0;
+		}
+		// DOWN
+		if (isButtonPressed(2) == 1) {
+			alarm_time.sec--;
+			if (alarm_time.sec < 0) alarm_time.sec = 59;
+		}
+		// SET
+		if (isButtonPressed(3) == 1) {
+			m3_status = ALARM_CLOCK;
+			alarm_flag = 1;
+		}
+		// CLEAR
+		if (isButtonPressed(4) == 1) {
+			alarm_time.sec = 0;
+		}
+		break;
+	default:
+		break;
+	}
+}
+

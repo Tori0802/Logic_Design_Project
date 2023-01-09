@@ -1,0 +1,7 @@
+fsm_clock.c:14:6:clear_display	8	static
+fsm_clock.c:22:6:display_fsm_time	48	static
+fsm_clock.c:35:6:fsm_init	32	static
+fsm_clock.c:43:6:update_real_time	8	static
+fsm_clock.c:51:6:fsm_clock	32	static
+fsm_clock.c:147:6:fsm_sport_clock	32	static
+fsm_clock.c:313:6:fsm_alarm_clock	8	static

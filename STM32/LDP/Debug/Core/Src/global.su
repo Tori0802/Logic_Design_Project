@@ -1,0 +1,2 @@
+global.c:13:13:time_init	24	static
+global.c:21:13:time_update	24	static
