@@ -4,7 +4,7 @@
 # Logic Design Project
 <ul>
 <li>Hội đồng : Đồ án thiết kế luận lí 6</li>
-<li>Giảng viên hướng dẫn : ThS. Đoàn Minh Vững 6</li>
+<li>Giảng viên hướng dẫn : ThS. Đoàn Minh Vững </li>
 <li>Thư kí hội đồng: Huỳnh Hoàng Kha</li>
 </ul>
 
